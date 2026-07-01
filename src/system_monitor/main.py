@@ -1,10 +1,16 @@
 import time
-from .monitor import get_cpu_usage
+from .monitor import get_system_metrics
 
 def main():
     while True:
-        cpu = get_cpu_usage()
-        print(f"\rCurrent CPU usage: {cpu:5.1f}%", end="", flush=True)
+        metrics = get_system_metrics()
+        print(
+            f"\rCPU: {metrics['cpu']:5.1f}% | "
+            f"Memory: {metrics['memory']:6.2f}% | "
+            f"Disk: {metrics['disk']:5.1f}%",
+            end="",
+            flush=True,
+        )
         time.sleep(1)
 
 
