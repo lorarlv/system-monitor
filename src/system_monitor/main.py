@@ -5,9 +5,9 @@ def main():
     while True:
         metrics = get_system_metrics()
         print(
-            f"\rCPU: {metrics['cpu']:5.1f}% | "
-            f"Memory: {metrics['memory']:6.2f}% | "
-            f"Disk Space Used: {metrics['disk']:5.1f}%",
+            f"\rCPU: {metrics.cpu:5.1f}% | "
+            f"RAM: {metrics.memory:6.2f}% | "
+            f"Disk Space Used: {metrics.disk:5.1f}%",
             end="",
             flush=True,
         )
