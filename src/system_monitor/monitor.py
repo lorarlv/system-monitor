@@ -30,3 +30,10 @@ def get_system_metrics() -> SystemMetrics:
         memory=get_memory_usage(),
         disk=get_disk_usage(),
     )
+
+def get_status(value: float, warning: float, critical: float) -> tuple[str, str]:
+    if value >= critical:
+        return "Critical", "red"
+    if value >= warning:
+        return "Busy", "orange1"
+    return "Healthy", "green"
