@@ -24,3 +24,6 @@ dlist/
 # OS files
 .DS_Store
 Thumbs.db
+
+# Experimentation
+playground.py
