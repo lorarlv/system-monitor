@@ -1,9 +1,11 @@
 from rich.table import Table
+from rich.console import Group
+from rich.text import Text
+from rich.align import Align
 
 from .monitor import SystemMetrics
-from .monitor import get_status
 
-def create_metrics_table(metrics: SystemMetrics) -> Table:
+def create_metrics_table(metrics: SystemMetrics) -> Group:
     table = Table(title="System Monitor")
 
     table.add_column("Metric")
@@ -18,4 +20,14 @@ def create_metrics_table(metrics: SystemMetrics) -> Table:
     table.add_row("RAM", f"{metrics.memory:.1f}%", f"[{ram_color}]{ram_status}[/{ram_color}]")
     table.add_row("Disk", f"{metrics.disk:.1f}%", f"[{disk_color}]{disk_status}[/{disk_color}]")
 
-    return table
+    timestamp = Text(f"Last updated: {metrics.timestamp.strftime("%Y-%m-%d %H:%M:%S")}", justify="center")
+    return Align.center(Group(table, timestamp))
+
+
+def get_status(value: float, warning: float, critical: float) -> tuple[str, str]:
+    """Categorizes health status and color codes it"""
+    if value >= critical:
+        return "Critical", "bold italic red"
+    if value >= warning:
+        return "Busy", "italic orange1"
+    return "Healthy", "italic green"
