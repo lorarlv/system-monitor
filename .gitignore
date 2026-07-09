@@ -25,5 +25,8 @@ dlist/
 .DS_Store
 Thumbs.db
 
+# Runtime data
+data/
+
 # Experimentation
 playground.py
