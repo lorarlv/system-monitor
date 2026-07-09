@@ -33,3 +33,23 @@ def trim_log() -> None:
         writer.writeheader()
         writer.writerows(rows)
     
+def load_metrics() -> list[dict[str,str]]:
+    with open(LOG_FILE, "r", newline="") as f:
+        reader = csv.DictReader(f)
+        return list(reader)
+    
+def get_history_summary() -> dict[str, float]:
+    rows = load_metrics()
+
+    if not rows:
+        return {
+            "avg_cpu": 0.0,
+            "avg_memory": 0.0,
+            "avg_disk": 0.0,
+        }
+    
+    return {
+        "avg_cpu": sum(float(row["cpu"]) for row in rows) / len(rows),
+        "avg_memory": sum(float(row["memory"]) for row in rows) / len(rows),
+        "avg_disk": sum(float(row["disk"]) for row in rows) / len(rows),
+    }

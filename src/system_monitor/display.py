@@ -6,7 +6,7 @@ from rich import box
 
 from .monitor import SystemMetrics
 
-def create_metrics_table(metrics: SystemMetrics) -> Group:
+def create_metrics_table(metrics: SystemMetrics, summary: dict[str, float]) -> Group:
     table = Table(title="System Monitor", box=box.ROUNDED)
 
     table.add_column("Metric")
@@ -23,7 +23,17 @@ def create_metrics_table(metrics: SystemMetrics) -> Group:
     table.add_row("Disk", f"{metrics.disk:.1f}%", f"[{disk_color}]{create_bar(metrics.disk)}[/{disk_color}]", f"[{disk_color}]{disk_status}[/{disk_color}]")
 
     timestamp = Text(f"Last updated: {metrics.timestamp.strftime("%Y-%m-%d %H:%M:%S")}", justify="center")
-    return Align.center(Group(table, timestamp))
+
+    summary_table = Table(title="History summary", box=box.ROUNDED)
+
+    summary_table.add_column("Metric")
+    summary_table.add_column("Average", justify="right")
+
+    summary_table.add_row("CPU", f"{summary['avg_cpu']:.1f}%")
+    summary_table.add_row("RAM", f"{summary['avg_memory']:.1f}%")
+    summary_table.add_row("Disk", f"{summary['avg_disk']:.1f}%")
+    
+    return Align.center(Group(table, summary_table, timestamp))
 
 def create_bar(value: float, width: int = 20) -> str:
     filled = int((value / 100) * width)
