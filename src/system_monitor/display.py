@@ -4,15 +4,17 @@ from rich.text import Text
 from rich.align import Align
 from rich import box
 
+from datetime import datetime
+
 from .monitor import SystemMetrics
 
-def create_metrics_table(metrics: SystemMetrics, summary: dict[str, float]) -> Group:
+def create_metrics_table(metrics: SystemMetrics, summary: dict[str, float], recent_metrics: list[SystemMetrics]) -> Group:
     table = Table(title="System Monitor", box=box.ROUNDED)
 
-    table.add_column("Metric")
-    table.add_column("Usage", justify="right")
-    table.add_column("Bar")
-    table.add_column("Status")
+    table.add_column("Metric", justify="center")
+    table.add_column("Usage", justify="center")
+    table.add_column("Bar", justify="center")
+    table.add_column("Status", justify="center")
 
     cpu_status, cpu_color = get_status(metrics.cpu, 50, 80)
     ram_status, ram_color = get_status(metrics.memory, 70, 90)
@@ -26,14 +28,33 @@ def create_metrics_table(metrics: SystemMetrics, summary: dict[str, float]) -> G
 
     summary_table = Table(title="History summary", box=box.ROUNDED)
 
-    summary_table.add_column("Metric")
-    summary_table.add_column("Average", justify="right")
+    summary_table.add_column("Metric", justify="center")
+    summary_table.add_column("Average", justify="center")
 
     summary_table.add_row("CPU", f"{summary['avg_cpu']:.1f}%")
     summary_table.add_row("RAM", f"{summary['avg_memory']:.1f}%")
     summary_table.add_row("Disk", f"{summary['avg_disk']:.1f}%")
     
-    return Align.center(Group(table, summary_table, timestamp))
+    recents_table = Table(title="Recent Samples", box=box.ROUNDED)
+
+    recents_table.add_column("Time", justify="center")
+    recents_table.add_column("CPU", justify="center")
+    recents_table.add_column("RAM", justify="center")
+    recents_table.add_column("Disk", justify="center")
+
+    for metric in recent_metrics:
+        recents_table.add_row(
+            datetime.fromisoformat(metric["timestamp"]).strftime("%H:%M:%S"),
+            f"{float(metric['cpu']):.1f}%",
+            f"{float(metric['memory']):.1f}%",
+            f"{float(metric['disk']):.1f}%"
+        )
+    return Group(
+        Align.center(table),
+        Align.center(summary_table),
+        Align.center(recents_table),
+        Align.center(timestamp)
+    )
 
 def create_bar(value: float, width: int = 20) -> str:
     filled = int((value / 100) * width)

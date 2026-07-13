@@ -53,3 +53,7 @@ def get_history_summary() -> dict[str, float]:
         "avg_memory": sum(float(row["memory"]) for row in rows) / len(rows),
         "avg_disk": sum(float(row["disk"]) for row in rows) / len(rows),
     }
+
+def get_recent_metrics(limit: int = 5) -> list[dict[str, str]]:
+    rows = load_metrics()
+    return rows[-limit:]

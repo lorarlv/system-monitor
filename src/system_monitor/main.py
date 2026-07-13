@@ -5,6 +5,7 @@ from rich.live import Live
 
 from .display import create_metrics_table
 from .monitor import get_system_metrics
+from .storage import get_recent_metrics
 
 def main():
     init_storage()
@@ -14,7 +15,8 @@ def main():
             metrics = get_system_metrics()
             save_metrics(metrics)
             summary = get_history_summary()
-            table = create_metrics_table(metrics, summary)
+            recent_metrics = get_recent_metrics()
+            table = create_metrics_table(metrics, summary, recent_metrics)
             live.update(table)
             time.sleep(1)
 
