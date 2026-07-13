@@ -44,10 +44,10 @@ def create_metrics_table(metrics: SystemMetrics, summary: dict[str, float], rece
 
     for metric in recent_metrics:
         recents_table.add_row(
-            datetime.fromisoformat(metric["timestamp"]).strftime("%H:%M:%S"),
-            f"{float(metric['cpu']):.1f}%",
-            f"{float(metric['memory']):.1f}%",
-            f"{float(metric['disk']):.1f}%"
+            metric.timestamp.strftime("%H:%M:%S"),
+            f"{metric.cpu:.1f}%",
+            f"{metric.memory:.1f}%",
+            f"{metric.disk:.1f}%"
         )
     return Group(
         Align.center(table),

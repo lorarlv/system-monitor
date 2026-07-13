@@ -5,11 +5,18 @@ from rich.live import Live
 
 from .display import create_metrics_table
 from .monitor import get_system_metrics
-from .storage import get_recent_metrics
+from .storage import (
+    get_history_summary,
+    get_recent_metrics,
+    init_storage,
+    save_metrics,
+    trim_history
+)
 
 def main():
     init_storage()
-    
+    trim_history()
+
     with Live(refresh_per_second=4) as live:
         while True:
             metrics = get_system_metrics()

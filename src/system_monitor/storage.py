@@ -1,37 +1,56 @@
-import csv
-import os
-
+import sqlite3
+from pathlib import Path
 from datetime import datetime, timedelta
+
 from .monitor import SystemMetrics
 
+DATA_DIR = Path("data")
+DB_FILE = DATA_DIR / "matrics.db"
 LOG_FILE = "data/monitor_log.csv"
 
 def init_storage() -> None:
-    os.makedirs("data", exist_ok=True)
-    if not os.path.exists(LOG_FILE):
-        with open(LOG_FILE, "w", newline="") as f:
-            writer = csv.DictWriter(f, fieldnames=["timestamp", "cpu", "memory", "disk"])
-            writer.writeheader()
+    DATA_DIR.mkdir(exist_ok=True)
+
+    with sqlite3.connect(DB_FILE) as connection:
+        connection.execute(
+            """
+            CREATE TABLE IF NOT EXISTS metrics (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            timestamp TEXT NOT NULL,
+            cpu REAL NOT NULL,
+            memory REAL NOT NULL,
+            disk REAL NOT NULL
+            )
+            """
+        )
 
 def save_metrics(metrics: SystemMetrics) -> None:
-    with open(LOG_FILE, "a", newline="") as f:
-        writer = csv.DictWriter(f, fieldnames=["timestamp", "cpu", "memory", "disk"])
-        writer.writerow({
-            "timestamp": metrics.timestamp.isoformat(),
-            "cpu": metrics.cpu,
-            "memory": metrics.memory,
-            "disk": metrics.disk,
-        })
+    with sqlite3.connect(DB_FILE) as connection:
+        connection.execute(
+            """
+            INSERT INTO metrics (timestamp, cpu, memory, disk)
+            VALUES (?, ?, ?, ?)
+            """,
+        (
+            metrics.timestamp.isoformat(),
+            metrics.cpu,
+            metrics.memory,
+            metrics.disk,
+        ),
+    )
 
-def trim_log() -> None:
-    cutoff = datetime.now() - timedelta(hours=24)
-    with open(LOG_FILE, "r") as f:
-        rows = list(csv.DictReader(f))
-    rows = [r for r in rows if datetime.fromisoformat(r["timestamp"]) > cutoff]
-    with open(LOG_FILE, "w", newline="") as f:
-        writer = csv.DictWriter(f, fieldnames=["timestamp", "cpu", "memory", "disk"])
-        writer.writeheader()
-        writer.writerows(rows)
+def trim_history(hours: int = 24) -> None:
+    cutoff = datetime.now() - timedelta(hours=hours)
+
+    with sqlite3.connect(DB_FILE) as connection:
+        connection.execute(
+            """
+            DELETE FROM metrics
+            WHERE timestamp < ?
+            """,
+            (cutoff.isoformat(),),
+        )
+    
     
 def load_metrics() -> list[dict[str,str]]:
     with open(LOG_FILE, "r", newline="") as f:
@@ -39,9 +58,18 @@ def load_metrics() -> list[dict[str,str]]:
         return list(reader)
     
 def get_history_summary() -> dict[str, float]:
-    rows = load_metrics()
+    with sqlite3.connect(DB_FILE) as connection:
+        row = connection.execute(
+            """
+            SELECT
+                AVG(cpu),
+                AVG(memory),
+                AVG(disk)
+            FROM metrics
+            """
+        ).fetchone()
 
-    if not rows:
+    if row is None or row[0] is None:
         return {
             "avg_cpu": 0.0,
             "avg_memory": 0.0,
@@ -49,11 +77,29 @@ def get_history_summary() -> dict[str, float]:
         }
     
     return {
-        "avg_cpu": sum(float(row["cpu"]) for row in rows) / len(rows),
-        "avg_memory": sum(float(row["memory"]) for row in rows) / len(rows),
-        "avg_disk": sum(float(row["disk"]) for row in rows) / len(rows),
+        "avg_cpu": float(row[0]),
+        "avg_memory": float(row[1]),
+        "avg_disk": float(row[2]),
     }
 
-def get_recent_metrics(limit: int = 5) -> list[dict[str, str]]:
-    rows = load_metrics()
-    return rows[-limit:]
+def get_recent_metrics(limit: int = 5) -> list[SystemMetrics]:
+    with sqlite3.connect(DB_FILE) as connection:
+        rows = connection.execute(
+            """
+            SELECT timestamp, cpu, memory, disk
+            FROM metrics
+            ORDER BY timestamp DESC
+            LIMIT ?
+            """,
+            (limit,),
+        ).fetchall()
+
+    return [
+        SystemMetrics(
+            timestamp=datetime.fromisoformat(timestamp),
+            cpu=cpu,
+            memory=memory,
+            disk=disk,
+        )
+        for timestamp, cpu, memory, disk in reversed(rows)
+    ]
