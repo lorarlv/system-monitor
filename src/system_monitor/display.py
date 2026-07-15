@@ -7,8 +7,9 @@ from rich import box
 from datetime import datetime
 
 from .monitor import SystemMetrics
+from .alerts import AlertStatus
 
-def create_metrics_table(metrics: SystemMetrics, summary: dict[str, float], recent_metrics: list[SystemMetrics]) -> Group:
+def create_metrics_table(metrics: SystemMetrics, summary: dict[str, float], recent_metrics: list[SystemMetrics], alerts: AlertStatus) -> Group:
     table = Table(title="System Monitor", box=box.ROUNDED)
 
     table.add_column("Metric", justify="center")
@@ -49,10 +50,28 @@ def create_metrics_table(metrics: SystemMetrics, summary: dict[str, float], rece
             f"{metric.memory:.1f}%",
             f"{metric.disk:.1f}%"
         )
+
+    alerts_table = Table(title="Active Alerts", box=box.ROUNDED)
+
+    alerts_table.add_column("Alert", justify="center")
+
+    if alerts.cpu:
+        alerts_table.add_row("[bold red]CPU usage has remained critically high[/bold red]")
+
+    if alerts.ram:
+        alerts_table.add_row("[bold red]RAM usage has remained critically high[/bold red]")
+
+    if alerts.disk:
+        alerts_table.add_row("[bold red]Disk usage has remained critically high[/bold red]")
+
+    if not any((alerts.cpu, alerts.ram, alerts.disk)):
+        alerts_table.add_row("[green]No active alerts[/green]")
+    
     return Group(
         Align.center(table),
         Align.center(summary_table),
         Align.center(recents_table),
+        Align.center(alerts_table),
         Align.center(timestamp)
     )
 
