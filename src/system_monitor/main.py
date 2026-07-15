@@ -1,3 +1,4 @@
+import argparse
 import time
 
 from .storage import init_storage, save_metrics, get_history_summary
@@ -14,14 +15,13 @@ from .storage import (
     trim_history
 )
 
-def main() -> None:
+def run_monitor(interval: float) -> None:
     init_storage()
     trim_history()
 
     cpu_alert = AlertState()
     ram_alert = AlertState()
     disk_alert = AlertState()
-
 
     with Live(refresh_per_second=4) as live:
         while True:
@@ -36,8 +36,58 @@ def main() -> None:
             )
             dashboard = create_metrics_table(metrics, summary, recent_metrics, alerts)
             live.update(dashboard)
-            time.sleep(1)
+            time.sleep(interval)
 
+def create_parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(
+        description="Monitor system resource usage."
+    )
+
+    parser.add_argument(
+        "command",
+        choices=["monitor", "summary", "recent"],
+        help="Choose what the program should do."
+    )
+
+    parser.add_argument(
+        "--interval",
+        type=float,
+        default=1.0,
+        help="Seconds between metric samples. Default: 1."
+    )
+
+    return parser
+
+def show_summary() -> None:
+    init_storage()
+    summary = get_history_summary()
+
+    print(f"Average CPU: {summary['avg_cpu']:.1f}%")
+    print(f"Average RAM: {summary['avg_memory']:.1f}%")
+    print(f"Average Disk: {summary['avg_disk']:.1f}%")
+
+def show_recent() -> None:
+    init_storage()
+    recent_metrics = get_recent_metrics()
+
+    for metric in recent_metrics:
+        print(
+            f"{metric.timestamp:%Y-%m-%d %H:%M:%S} | "
+            f"CPU {metric.cpu:.1f}% | "
+            f"RAM {metric.memory:.1f}% | "
+            f"Disk {metric.disk:.1f}%"
+        )
+
+def main() -> None:
+    parser = create_parser()
+    args = parser.parse_args()
+
+    if args.command == "monitor":
+        run_monitor(args.interval)
+    elif args.command == "summary":
+        show_summary()
+    elif args.command == "recent":
+        show_recent()
 
 if __name__ == "__main__":
     main()
