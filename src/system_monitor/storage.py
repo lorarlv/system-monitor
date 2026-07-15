@@ -5,8 +5,7 @@ from datetime import datetime, timedelta
 from .monitor import SystemMetrics
 
 DATA_DIR = Path("data")
-DB_FILE = DATA_DIR / "matrics.db"
-LOG_FILE = "data/monitor_log.csv"
+DB_FILE = DATA_DIR / "metrics.db"
 
 def init_storage() -> None:
     DATA_DIR.mkdir(exist_ok=True)
@@ -21,6 +20,13 @@ def init_storage() -> None:
             memory REAL NOT NULL,
             disk REAL NOT NULL
             )
+            """
+        )
+
+        connection.execute(
+            """
+            CREATE INDEX IF NOT EXISTS idx_metrics_timestamp
+            ON metrics(timestamp)
             """
         )
 
@@ -50,13 +56,7 @@ def trim_history(hours: int = 24) -> None:
             """,
             (cutoff.isoformat(),),
         )
-    
-    
-def load_metrics() -> list[dict[str,str]]:
-    with open(LOG_FILE, "r", newline="") as f:
-        reader = csv.DictReader(f)
-        return list(reader)
-    
+
 def get_history_summary() -> dict[str, float]:
     with sqlite3.connect(DB_FILE) as connection:
         row = connection.execute(
