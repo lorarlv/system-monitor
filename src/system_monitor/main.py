@@ -40,20 +40,42 @@ def run_monitor(interval: float) -> None:
 
 def create_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        description="Monitor system resource usage."
+        prog="system-monitor",
+        description="Monitor system resource usage"
     )
 
-    parser.add_argument(
-        "command",
-        choices=["monitor", "summary", "recent"],
-        help="Choose what the program should do."
+    subparsers = parser.add_subparsers(
+        dest="command",
+        required=True
+    )
+    
+    monitor_parser = subparsers.add_parser(
+        "monitor",
+        help="Run the live system monitor",
     )
 
-    parser.add_argument(
+    monitor_parser.add_argument(
         "--interval",
         type=float,
         default=1.0,
-        help="Seconds between metric samples. Default: 1."
+        help="Seconds between metric samples. Default: 1",
+    )
+
+    subparsers.add_parser(
+        "summary",
+        help="Display historical metrics averages",
+    )
+    
+    recent_parser = subparsers.add_parser(
+        "recent",
+        help="Display recent metric samples",
+    )
+
+    recent_parser.add_argument(
+        "--limit",
+        type=int,
+        default=5,
+        help="Number of recent samples to display. Default: 5"
     )
 
     return parser
@@ -66,9 +88,9 @@ def show_summary() -> None:
     print(f"Average RAM: {summary['avg_memory']:.1f}%")
     print(f"Average Disk: {summary['avg_disk']:.1f}%")
 
-def show_recent() -> None:
+def show_recent(limit: int) -> None:
     init_storage()
-    recent_metrics = get_recent_metrics()
+    recent_metrics = get_recent_metrics(limit)
 
     for metric in recent_metrics:
         print(
@@ -87,7 +109,7 @@ def main() -> None:
     elif args.command == "summary":
         show_summary()
     elif args.command == "recent":
-        show_recent()
+        show_recent(args.limit)
 
 if __name__ == "__main__":
     main()

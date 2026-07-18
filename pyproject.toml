@@ -1,0 +1,20 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "system-monitor-dashboard"
+version = "0.1.0"
+description = "A terminal system monitoring dashboard with history and alerts"
+requires-python = ">=3.13"
+dependencies = [
+    "psutil",
+    "rich",
+]
+
+[project.scripts]
+system-monitor = "system_monitor.main:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["src.system_monitor*"]
