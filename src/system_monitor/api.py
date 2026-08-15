@@ -11,6 +11,8 @@ class MetricsResponse(BaseModel):
     cpu_percent: float
     memory_percent: float
     disk_percent: float
+    download_mb: float
+    upload_mb: float
 
 
 app = FastAPI(
@@ -25,11 +27,16 @@ def health() -> dict[str, str]:
 def current_metrics() -> MetricsResponse:
     metrics = get_system_metrics()
 
+    import psutil
+    network = psutil.net_io_counters()
+
     return MetricsResponse(
         timestamp=metrics.timestamp,
         cpu_percent=metrics.cpu,
         memory_percent=metrics.memory,
         disk_percent=metrics.disk,
+        download_mb=round(network.bytes_recv / (1024 * 1024), 2),
+        upload_mb=round(network.bytes_sent / (1024 * 1024), 2),
     )
 
 @app.get("/metrics/recent")
