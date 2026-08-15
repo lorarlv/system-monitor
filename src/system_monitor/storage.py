@@ -18,7 +18,9 @@ def init_storage() -> None:
             timestamp TEXT NOT NULL,
             cpu REAL NOT NULL,
             memory REAL NOT NULL,
-            disk REAL NOT NULL
+            disk REAL NOT NULL,
+            download_rate REAL NOT NULL,
+            upload_rate REAL NOT NULL
             )
             """
         )
@@ -34,14 +36,16 @@ def save_metrics(metrics: SystemMetrics) -> None:
     with sqlite3.connect(DB_FILE) as connection:
         connection.execute(
             """
-            INSERT INTO metrics (timestamp, cpu, memory, disk)
-            VALUES (?, ?, ?, ?)
+            INSERT INTO metrics (timestamp, cpu, memory, disk, download_rate, upload_rate)
+            VALUES (?, ?, ?, ?, ?, ?)
             """,
         (
             metrics.timestamp.isoformat(),
             metrics.cpu,
             metrics.memory,
             metrics.disk,
+            metrics.download_rate,
+            metrics.upload_rate,
         ),
     )
 
@@ -86,7 +90,7 @@ def get_recent_metrics(limit: int = 5) -> list[SystemMetrics]:
     with sqlite3.connect(DB_FILE) as connection:
         rows = connection.execute(
             """
-            SELECT timestamp, cpu, memory, disk
+            SELECT timestamp, cpu, memory, disk, download_rate, upload_rate
             FROM metrics
             ORDER BY timestamp DESC
             LIMIT ?
@@ -100,6 +104,8 @@ def get_recent_metrics(limit: int = 5) -> list[SystemMetrics]:
             cpu=cpu,
             memory=memory,
             disk=disk,
+            download_rate=download_rate,
+            upload_rate=upload_rate,
         )
-        for timestamp, cpu, memory, disk in reversed(rows)
+        for timestamp, cpu, memory, disk, download_rate, upload_rate in reversed(rows)
     ]

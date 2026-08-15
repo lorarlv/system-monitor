@@ -4,10 +4,10 @@ from rich.text import Text
 from rich.align import Align
 from rich import box
 
-from datetime import datetime
-
 from .monitor import SystemMetrics
 from .alerts import AlertStatus
+
+NETWORK_BAR_MAX_MBPS = 50
 
 def create_metrics_table(metrics: SystemMetrics, summary: dict[str, float], recent_metrics: list[SystemMetrics], alerts: AlertStatus) -> Group:
     table = Table(title="System Monitor", box=box.ROUNDED)
@@ -21,9 +21,17 @@ def create_metrics_table(metrics: SystemMetrics, summary: dict[str, float], rece
     ram_status, ram_color = get_status(metrics.memory, 70, 90)
     disk_status, disk_color = get_status(metrics.disk, 80, 90)
 
+    download_mb = metrics.download_rate / (1024 * 1024)
+    upload_mb = metrics.upload_rate / (1024 * 1024)
+
+    download_percent = network_percent(metrics.download_rate)
+    upload_percent = network_percent(metrics.upload_rate)
+
     table.add_row("CPU", f"{metrics.cpu:.1f}%", f"[{cpu_color}]{create_bar(metrics.cpu)}[/{cpu_color}]", f"[{cpu_color}]{cpu_status}[/{cpu_color}]")
     table.add_row("RAM", f"{metrics.memory:.1f}%", f"[{ram_color}]{create_bar(metrics.memory)}[/{ram_color}]", f"[{ram_color}]{ram_status}[/{ram_color}]")
     table.add_row("Disk", f"{metrics.disk:.1f}%", f"[{disk_color}]{create_bar(metrics.disk)}[/{disk_color}]", f"[{disk_color}]{disk_status}[/{disk_color}]")
+    table.add_row("Download", f"{download_mb:.2f} MB/s", f"[blue]{create_bar(download_percent)}[/blue]", "")
+    table.add_row("Upload", f"{upload_mb:.2f} MB/s", f"[blue]{create_bar(upload_percent)}[/blue]", "")
 
     timestamp = Text(f"Last updated: {metrics.timestamp.strftime("%Y-%m-%d %H:%M:%S")}", justify="center")
 
@@ -87,3 +95,10 @@ def get_status(value: float, warning: float, critical: float) -> tuple[str, str]
     if value >= warning:
         return "Busy", "italic orange1"
     return "Healthy", "italic green"
+
+def network_percent(rate_bytes_per_sec: float) -> float:
+    rate_mbps = rate_bytes_per_sec * 8 / 1_000_000
+
+    percent = (rate_mbps / NETWORK_BAR_MAX_MBPS) * 100
+
+    return min(percent, 100.0)
