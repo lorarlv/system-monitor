@@ -3,7 +3,8 @@ from datetime import datetime
 from fastapi import FastAPI
 from pydantic import BaseModel
 
-from system_monitor.monitor import get_system_metrics
+from .monitor import get_system_metrics
+from .storage import get_recent_metrics, get_history_summary
 
 class MetricsResponse(BaseModel):
     timestamp: datetime
@@ -30,3 +31,11 @@ def current_metrics() -> MetricsResponse:
         memory_percent=metrics.memory,
         disk_percent=metrics.disk,
     )
+
+@app.get("/metrics/recent")
+def recent_metrics(limit: int = 5):
+    return get_recent_metrics(limit)
+
+@app.get("/metrics/summary")
+def metrics_summary():
+    return get_history_summary()
