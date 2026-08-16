@@ -1,32 +1,73 @@
-# system-monitor
-A full-stack system monitoring dashboard
+# System monitor
+A modular system monitoring application built with Python to practice backend development, software design, and system programming
+
 ## Overview
-Sytstem monitor is a personal project built to learn professional software engineering.
-The application will collect system metrics (CPU, memory, disk, network) and display them in a web dashboard.
+Sytstem monitor is a personal learning project that has gradually grown from a simple dashboard CPU monitor into a modular application
+
+It collects real-time system information, stores historical data in SQLite, exposes a REST API, and displays everything in a live terminal dashboard
+
+I plan to continue expanding it with new features and improvements to the overall design
+
 ---
-## Planned features
-- CPU monitoring
-- Memory monitoring
-- Disk monitoring
-- Network monitoring
-- Historical data 
-- Alert system
-- REST API
-- React dashboard
+
+## Current features
+
+### Monitoring
+- CPU usage
+- CPU temperature monitoring
+- memory usage
+- disk usage
+- network upload/download speed
+
+### Dashboard
+- live terminal dashboard built with Rich
+- color-coded health indicators
+- usage bars
+- historical summary
+- recent sample history
+- threshold-based alerts
+
+### Data
+- SQLite metric storage
+- automatic cleanup of old history
+- historical averages
+- recent metric retrieval
+
+### Interfaces
+- command-line interface
+- FastAPI REST API
+- OpenAPI/Swagger documentation
+
+---
+
+## Roadmap
+
+- React web dashboard
 - Docker deployment
+- Linux support
+- GPU and additional hardware sensors
+- configurable alert thresholds
+- exporting metrics (CSV / JSON)
+- Automated tests
+- CI/CD pipeline
+
 ---
-## Technologies
+
+## Tech stack
 
 ### Backend
 - Python
 - FastAPI
-### Frontend
+- Rich
+- psutil
+- LibreHardwareMonitor
+- SQLite
+
+### Planned frontend
 - React
 - TypeScript
-### Database
-- SQLite
+
 ### Tools
 - Git
 - GitHub
 - Docker
-- Linux
