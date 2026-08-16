@@ -1,25 +1,19 @@
 import argparse
 import time
 
-from .storage import init_storage, save_metrics, get_history_summary
 from rich.live import Live
 
 from .alerts import AlertState, AlertStatus, update_alert
 from .display import create_metrics_table
 from .monitor import get_system_metrics
-from .storage import (
-    get_history_summary,
-    get_recent_metrics,
-    init_storage,
-    save_metrics,
-    trim_history
-)
+from .storage import get_history_summary, get_recent_metrics, init_storage, save_metrics, trim_history
 
 def run_monitor(interval: float) -> None:
     init_storage()
     trim_history()
 
     cpu_alert = AlertState()
+    temperature_alert = AlertState()
     ram_alert = AlertState()
     disk_alert = AlertState()
 
@@ -29,8 +23,16 @@ def run_monitor(interval: float) -> None:
             save_metrics(metrics)
             summary = get_history_summary()
             recent_metrics = get_recent_metrics()
+            temperature_is_alerting = False
+            if metrics.cpu_temperature is not None:
+                temperature_is_alerting = update_alert(
+                    metrics.cpu_temperature,
+                    90.0,
+                    temperature_alert,
+                )
             alerts = AlertStatus(
                 cpu = update_alert(metrics.cpu, 80.0, cpu_alert),
+                temperature=temperature_is_alerting,
                 ram = update_alert(metrics.memory, 90.0, ram_alert),
                 disk = update_alert(metrics.disk, 90.0, disk_alert)
             )
@@ -85,6 +87,7 @@ def show_summary() -> None:
     summary = get_history_summary()
 
     print(f"Average CPU: {summary['avg_cpu']:.1f}%")
+    print(f"Average CPU Temp: {summary['avg_cpu_temperature']:.1f}°C")
     print(f"Average RAM: {summary['avg_memory']:.1f}%")
     print(f"Average Disk: {summary['avg_disk']:.1f}%")
 
@@ -93,9 +96,15 @@ def show_recent(limit: int) -> None:
     recent_metrics = get_recent_metrics(limit)
 
     for metric in recent_metrics:
+        temperature = (
+            f"{metric.cpu_temperature:.1f}°C"
+            if metric.cpu_temperature is not None
+            else "N/A"
+        )
         print(
             f"{metric.timestamp:%Y-%m-%d %H:%M:%S} | "
             f"CPU {metric.cpu:.1f}% | "
+            f"CPU Temp {temperature} | "
             f"RAM {metric.memory:.1f}% | "
             f"Disk {metric.disk:.1f}%"
         )

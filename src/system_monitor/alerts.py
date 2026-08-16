@@ -8,6 +8,7 @@ class AlertState:
 @dataclass
 class AlertStatus:
     cpu: bool
+    temperature: bool
     ram: bool
     disk: bool
 

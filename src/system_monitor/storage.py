@@ -17,6 +17,7 @@ def init_storage() -> None:
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             timestamp TEXT NOT NULL,
             cpu REAL NOT NULL,
+            cpu_temperature REAL,
             memory REAL NOT NULL,
             disk REAL NOT NULL,
             download_rate REAL NOT NULL,
@@ -36,12 +37,13 @@ def save_metrics(metrics: SystemMetrics) -> None:
     with sqlite3.connect(DB_FILE) as connection:
         connection.execute(
             """
-            INSERT INTO metrics (timestamp, cpu, memory, disk, download_rate, upload_rate)
-            VALUES (?, ?, ?, ?, ?, ?)
+            INSERT INTO metrics (timestamp, cpu, cpu_temperature, memory, disk, download_rate, upload_rate)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
             """,
         (
             metrics.timestamp.isoformat(),
             metrics.cpu,
+            metrics.cpu_temperature,
             metrics.memory,
             metrics.disk,
             metrics.download_rate,
@@ -67,6 +69,7 @@ def get_history_summary() -> dict[str, float]:
             """
             SELECT
                 AVG(cpu),
+                AVG(cpu_temperature),
                 AVG(memory),
                 AVG(disk)
             FROM metrics
@@ -76,21 +79,23 @@ def get_history_summary() -> dict[str, float]:
     if row is None or row[0] is None:
         return {
             "avg_cpu": 0.0,
+            "avg_cpu_temperature": 0.0,
             "avg_memory": 0.0,
             "avg_disk": 0.0,
         }
     
     return {
         "avg_cpu": float(row[0]),
-        "avg_memory": float(row[1]),
-        "avg_disk": float(row[2]),
+        "avg_cpu_temperature": float(row[1]) if row[1] is not None else 0.0,
+        "avg_memory": float(row[2]),
+        "avg_disk": float(row[3]),
     }
 
 def get_recent_metrics(limit: int = 5) -> list[SystemMetrics]:
     with sqlite3.connect(DB_FILE) as connection:
         rows = connection.execute(
             """
-            SELECT timestamp, cpu, memory, disk, download_rate, upload_rate
+            SELECT timestamp, cpu, cpu_temperature, memory, disk, download_rate, upload_rate
             FROM metrics
             ORDER BY timestamp DESC
             LIMIT ?
@@ -102,10 +107,11 @@ def get_recent_metrics(limit: int = 5) -> list[SystemMetrics]:
         SystemMetrics(
             timestamp=datetime.fromisoformat(timestamp),
             cpu=cpu,
+            cpu_temperature=cpu_temperature,
             memory=memory,
             disk=disk,
             download_rate=download_rate,
             upload_rate=upload_rate,
         )
-        for timestamp, cpu, memory, disk, download_rate, upload_rate in reversed(rows)
+        for timestamp, cpu, cpu_temperature, memory, disk, download_rate, upload_rate in reversed(rows)
     ]

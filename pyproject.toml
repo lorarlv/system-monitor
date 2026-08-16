@@ -12,6 +12,7 @@ dependencies = [
     "rich",
     "fastapi",
     "uvicorn",
+    "pythonnet",
 ]
 
 [project.scripts]

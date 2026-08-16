@@ -4,20 +4,22 @@ from datetime import datetime
 
 import psutil
 
+from .hardware import get_cpu_temperature
+
 _last_net = psutil.net_io_counters()
 _last_net_time = time.time()
 
 def get_cpu_usage() -> float:
-    """Returns the current CPU usage as a percentage."""
+    """returns the current CPU usage as a percentage"""
     return psutil.cpu_percent()
 
 def get_memory_usage() -> float:
-    """Returns the current memory usage as a percentage."""
+    """returns the current memory usage as a percentage"""
     return psutil.virtual_memory().percent
 
 def get_disk_usage() -> float:
-    """Returns the current disk usage as a percentage."""
-    return psutil.disk_usage('/').percent
+    """returns the current disk usage as a percentage"""
+    return psutil.disk_usage('C:\\').percent
 
 def get_network_usage() -> tuple[float, float]:
     global _last_net, _last_net_time
@@ -42,6 +44,7 @@ def get_network_usage() -> tuple[float, float]:
 class SystemMetrics:
     timestamp: datetime
     cpu: float
+    cpu_temperature: float | None
     memory: float
     disk: float
     download_rate: float
@@ -53,6 +56,7 @@ def get_system_metrics() -> SystemMetrics:
     return SystemMetrics(
         timestamp=datetime.now(),
         cpu=get_cpu_usage(),
+        cpu_temperature=get_cpu_temperature(),
         memory=get_memory_usage(),
         disk=get_disk_usage(),
         download_rate=download_rate,
