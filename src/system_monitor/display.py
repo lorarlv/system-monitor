@@ -30,9 +30,6 @@ def create_metrics_table(metrics: SystemMetrics, summary: dict[str, float], rece
     ram_status, ram_color = get_status(metrics.memory, 70, 90)
     disk_status, disk_color = get_status(metrics.disk, 80, 90)
 
-    download_mb = metrics.download_rate / (1024 * 1024)
-    upload_mb = metrics.upload_rate / (1024 * 1024)
-
     download_percent = network_percent(metrics.download_rate)
     upload_percent = network_percent(metrics.upload_rate)
 
@@ -40,8 +37,8 @@ def create_metrics_table(metrics: SystemMetrics, summary: dict[str, float], rece
     table.add_row("CPU Temp", temperature_value, "", temperature_status)
     table.add_row("RAM", f"{metrics.memory:.1f}%", f"[{ram_color}]{create_bar(metrics.memory)}[/{ram_color}]", f"[{ram_color}]{ram_status}[/{ram_color}]")
     table.add_row("Disk", f"{metrics.disk:.1f}%", f"[{disk_color}]{create_bar(metrics.disk)}[/{disk_color}]", f"[{disk_color}]{disk_status}[/{disk_color}]")
-    table.add_row("Download", f"{download_mb:.2f} MB/s", f"[blue]{create_bar(download_percent)}[/blue]", "")
-    table.add_row("Upload", f"{upload_mb:.2f} MB/s", f"[blue]{create_bar(upload_percent)}[/blue]", "")
+    table.add_row("Download", format_network_rate(metrics.download_rate), f"[blue]{create_bar(download_percent)}[/blue]", "")
+    table.add_row("Upload", format_network_rate(metrics.upload_rate), f"[blue]{create_bar(upload_percent)}[/blue]", "")
 
     timestamp = Text(f"Last updated: {metrics.timestamp.strftime("%Y-%m-%d %H:%M:%S")}", justify="center")
 
@@ -122,6 +119,18 @@ def get_temperature_status(temperature: float) -> tuple[str, str]:
     if temperature >= 75:
         return "Warm", "italic orange1"
     return "Normal", "italic green"
+
+def format_network_rate(rate_bytes_per_sec: float) -> str:
+    if rate_bytes_per_sec < 1024:
+        return f"{rate_bytes_per_sec:.0f} B/s"
+
+    if rate_bytes_per_sec < 1024 ** 2:
+        return f"{rate_bytes_per_sec / 1024:.1f} KB/s"
+
+    if rate_bytes_per_sec < 1024 ** 3:
+        return f"{rate_bytes_per_sec / (1024 ** 2):.2f} MB/s"
+
+    return f"{rate_bytes_per_sec / (1024 ** 3):.2f} GB/s"
 
 def network_percent(rate_bytes_per_sec: float) -> float:
     rate_mbps = rate_bytes_per_sec * 8 / 1_000_000
