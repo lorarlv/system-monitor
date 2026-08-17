@@ -91,6 +91,48 @@ def get_history_summary() -> dict[str, float]:
         "avg_disk": float(row[3]),
     }
 
+def get_metrics_since(minutes: int = 5) -> list[SystemMetrics]:
+    cutoff = datetime.now() - timedelta(minutes=minutes)
+
+    with sqlite3.connect(DB_FILE) as connection:
+        rows = connection.execute(
+            """
+            SELECT
+                timestamp,
+                cpu,
+                cpu_temperature,
+                memory,
+                disk,
+                download_rate,
+                upload_rate
+            FROM metrics
+            WHERE timestamp >= ?
+            ORDER BY timestamp ASC
+            """,
+            (cutoff.isoformat(),),
+        ).fetchall()
+
+    return [
+        SystemMetrics(
+            timestamp=datetime.fromisoformat(timestamp),
+            cpu=cpu,
+            cpu_temperature=cpu_temperature,
+            memory=memory,
+            disk=disk,
+            download_rate=download_rate,
+            upload_rate=upload_rate,
+        )
+        for (
+            timestamp,
+            cpu,
+            cpu_temperature,
+            memory,
+            disk,
+            download_rate,
+            upload_rate,
+        ) in rows
+    ]
+
 def get_recent_metrics(limit: int = 5) -> list[SystemMetrics]:
     with sqlite3.connect(DB_FILE) as connection:
         rows = connection.execute(
