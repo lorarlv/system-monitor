@@ -1,33 +1,29 @@
 import { useEffect, useState } from "react";
 
-type Metrics = {
-  timestamp: string;
-  cpu_percent: number;
-  cpu_temperature: number | null;
-  memory_percent: number;
-  disk_percent: number;
-  download_rate: number;
-  upload_rate: number;
+import "./App.css";
+
+import MetricCard from "./components/MetricCard";
+import type { Metrics } from "./types/metrics";
+import { formatNetworkRate } from "./utils/format";
+
+function getStatus(
+  value: number,
+  warning: number,
+  critical: number
+): "healthy" | "warning" | "critical" {
+  if (value >= critical) {
+    return "critical";
+  }
+
+  if (value >= warning) {
+    return "warning";
+  }
+
+  return "healthy"
 }
 
 function App() {
   const [metrics, setMetrics] = useState<Metrics | null>(null);
-
-  function formatNetworkRate(rate: number): string {
-    if (rate >= 1024 ** 3) {
-      return `${(rate / 1024 ** 3).toFixed(2)} GB/s`;
-    }
-
-    if (rate >= 1024 ** 2) {
-      return `${(rate / 1024 ** 2).toFixed(2)} MB/s`;
-    }
-
-    if (rate >= 1024) {
-      return `${(rate / 1024).toFixed(2)} KB/s`;
-    }
-
-    return `${rate.toFixed(0)} B/s`;
-  }
 
   useEffect(() => {
     const fetchMetrics = () => {
@@ -39,12 +35,14 @@ function App() {
       
           return response.json();
         })
-        .then ((data) => {setMetrics(data)})
+        .then ((data) => {
+          setMetrics(data)
+        })
         .catch((error) => {
           console.error("Failed to fetch metrics:", error);
         });
       };
-      
+
       fetchMetrics();
 
       const interval = setInterval(fetchMetrics, 1000);
@@ -53,22 +51,50 @@ function App() {
   }, []);
 
   return (
-    <>
-      <h1>System Monitor</h1>
+    <main className="app">
+      <h1 className="app-title">System Monitor</h1>
       
       {metrics ? (
-        <div>
-          <p>CPU: {metrics.cpu_percent.toFixed(1)}%</p>
-            <p>CPU temperature:{" "}{metrics.cpu_temperature === null ? "Unavailable" : `${metrics.cpu_temperature.toFixed(1)}°C`}</p>
-          <p>RAM: {metrics.memory_percent.toFixed(1)}%</p>
-          <p>Disk: {metrics.disk_percent.toFixed(1)}%</p>
-          <p>Download: {formatNetworkRate(metrics.download_rate)}</p>
-          <p>Upload: {formatNetworkRate(metrics.upload_rate)}</p>
+        <div className="metrics-grid">
+          <MetricCard 
+            title="CPU"
+            value={`${metrics.cpu_percent.toFixed(1)}%`}
+            percent={metrics.cpu_percent}
+            status={getStatus(metrics.cpu_percent, 50, 80)}
+          />
+          <MetricCard
+            title="CPU temperature"
+            value={
+              metrics.cpu_temperature === null
+                ? "Unavailable"
+                : `${metrics.cpu_temperature.toFixed(1)}°C`
+            }
+          />
+          <MetricCard 
+            title="RAM"
+            value={`${metrics.memory_percent.toFixed(1)}%`}
+            percent={metrics.memory_percent}
+            status={getStatus(metrics.memory_percent, 70, 90)}
+          />
+          <MetricCard 
+            title="Disk"
+            value={`${metrics.disk_percent.toFixed(1)}%`}
+            percent={metrics.disk_percent}
+            status={getStatus(metrics.disk_percent, 80, 90)}
+          />
+          <MetricCard 
+            title="Download"
+            value={formatNetworkRate(metrics.download_rate)}
+          />
+          <MetricCard 
+            title="Upload"
+            value={formatNetworkRate(metrics.upload_rate)}
+          />
         </div>
       ) : (
-        <p>Loading...</p>
+        <p className="loading">Loading...</p>
       )}
-    </>
+    </main>
   );
 }
 
