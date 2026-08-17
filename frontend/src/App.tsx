@@ -22,6 +22,30 @@ function getStatus(
   return "healthy"
 }
 
+function getTemperatureStatus(
+  temperature: number
+): "cool" | "warm" | "hot" {
+  if (temperature >= 90) {
+    return "hot";
+  }
+
+  if (temperature >= 70) {
+    return "warm";
+  }
+
+  return "cool";
+}
+
+function temperaturePercent(temp: number): number {
+  const min = 30;
+  const max = 100;
+
+  return Math.max(
+    0,
+    Math.min(((temp - min) / (max - min)) * 100, 100)
+  )
+}
+
 function App() {
   const [metrics, setMetrics] = useState<Metrics | null>(null);
 
@@ -50,6 +74,11 @@ function App() {
       return () => clearInterval(interval);
   }, []);
 
+  const temperatureStatus =
+    metrics?.cpu_temperature != null
+      ? getTemperatureStatus(metrics.cpu_temperature)
+      : undefined;
+
   return (
     <main className="app">
       <h1 className="app-title">System Monitor</h1>
@@ -61,6 +90,7 @@ function App() {
             value={`${metrics.cpu_percent.toFixed(1)}%`}
             percent={metrics.cpu_percent}
             status={getStatus(metrics.cpu_percent, 50, 80)}
+            visual="bar"
           />
           <MetricCard
             title="CPU temperature"
@@ -69,18 +99,27 @@ function App() {
                 ? "Unavailable"
                 : `${metrics.cpu_temperature.toFixed(1)}°C`
             }
+            percent={
+              metrics.cpu_temperature === null
+                ? undefined
+                : temperaturePercent(metrics.cpu_temperature)
+            }
+            status={temperatureStatus}
+            visual="thermometer"
           />
           <MetricCard 
             title="RAM"
             value={`${metrics.memory_percent.toFixed(1)}%`}
             percent={metrics.memory_percent}
             status={getStatus(metrics.memory_percent, 70, 90)}
+            visual="bar"
           />
           <MetricCard 
             title="Disk"
             value={`${metrics.disk_percent.toFixed(1)}%`}
             percent={metrics.disk_percent}
             status={getStatus(metrics.disk_percent, 80, 90)}
+            visual="bar"
           />
           <MetricCard 
             title="Download"

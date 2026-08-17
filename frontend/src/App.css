@@ -52,15 +52,82 @@
   transition: width 0.4s ease;
 }
 
-.usage-bar-fill.healthy {
+.temperature-layout {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 24px;
+  margin-top: 16px;
+  min-height: 100px;
+}
+
+.temperature-info {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.temperature-info .metric-value, .temperature-info .metric-status {
+  margin: 0;
+}
+
+.thermometer {
+  position: relative;
+  width: 24px;
+  height: 86px;
+  margin-right: 12px;
+  flex-shrink: 0;
+}
+
+.thermometer::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 0;
+  bottom: 14px;
+  width: 8px;
+  transform: translateX(-50%);
+  border-radius: 999px 999px 0 0;
+  background: #2a303b;
+}
+
+.thermometer-tube {
+    position: absolute;
+    left: 50%;
+    top: 0;
+    bottom: 14px;
+    width: 8px;
+    transform: translateX(-50%);
+    overflow: hidden;
+    border-radius: 999px;
+    background: #2a303b;
+}
+
+.thermometer-mercury {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+}
+
+.thermometer-bulb {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  width: 20px;
+  height: 20px;
+  transform: translateX(-50%);
+  border-radius: 50%;
+}
+
+.usage-bar-fill.healthy, .thermometer-mercury.cool, .thermometer-bulb.cool {
   background: #4ade80;
 }
 
-.usage-bar-fill.warning {
+.usage-bar-fill.warning, .thermometer-mercury.warm, .thermometer-bulb.warm {
   background: #f59e0b;
 }
 
-.usage-bar-fill.critical {
+.usage-bar-fill.critical, .thermometer-mercury.hot, .thermometer-bulb.hot {
   background: #ef4444;
 }
 
@@ -70,15 +137,15 @@
   font-weight: 600;
 }
 
-.metric-status.healthy {
+.metric-status.healthy, .metric-status.cool {
   color: #4ade80;
 }
 
-.metric-status.warning {
+.metric-status.warning, .metric-status.warm {
   color: #f59e0b;
 }
 
-.metric-status.critical {
+.metric-status.critical, .metric-status.hot {
   color: #ef4444;
 }
 
