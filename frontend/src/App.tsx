@@ -46,8 +46,21 @@ function temperaturePercent(temp: number): number {
   )
 }
 
+function adaptiveNetworkPercent (
+  currentRate: number,
+  maxRate: number
+): number {
+  if (maxRate <= 0) {
+    return 0;
+  }
+
+  return Math.min((currentRate / maxRate) * 100, 100)
+}
+
 function App() {
   const [metrics, setMetrics] = useState<Metrics | null>(null);
+  const [maxDownloadRate, setMaxDownloadRate] = useState(1);
+  const [maxUploadRate, setMaxUploadRate] = useState(1);
 
   useEffect(() => {
     const fetchMetrics = () => {
@@ -61,6 +74,14 @@ function App() {
         })
         .then ((data) => {
           setMetrics(data)
+
+          setMaxDownloadRate((currentMax) =>
+            Math.max(currentMax, data.download_rate)
+          );
+
+          setMaxUploadRate((currentMax) =>
+            Math.max(currentMax, data.upload_rate)
+          );
         })
         .catch((error) => {
           console.error("Failed to fetch metrics:", error);
@@ -122,12 +143,16 @@ function App() {
             visual="bar"
           />
           <MetricCard 
-            title="Download"
+            title="↓ Download ↓"
             value={formatNetworkRate(metrics.download_rate)}
+            percent={adaptiveNetworkPercent(metrics.download_rate, maxDownloadRate)}
+            visual="network"
           />
           <MetricCard 
-            title="Upload"
+            title="↑ Upload ↑"
             value={formatNetworkRate(metrics.upload_rate)}
+            percent={adaptiveNetworkPercent(metrics.upload_rate, maxUploadRate)}
+            visual="network"
           />
         </div>
       ) : (

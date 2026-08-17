@@ -11,7 +11,7 @@ type MetricCardProps = {
   value: string;
   percent?: number;
   status?: MetricStatus;
-  visual?: "bar" | "thermometer";
+  visual?: "bar" | "thermometer" | "network";
 };
 
 function MetricCard({
@@ -71,6 +71,17 @@ function MetricCard({
               <div className={`thermometer-bulb ${status}`} />
             </div>
           </div>
+        )}
+
+        {visual === "network" && percent !== undefined && (
+            <div className="network-visual">
+                <div className="network-bar">
+                    <div
+                        className="network-bar-fill"
+                        style={{ width: `${Math.min(percent, 100)}%` }}
+                    />
+                </div>
+            </div>
         )}
     </div>
   );

@@ -13,3 +13,14 @@ export function formatNetworkRate(rate: number): string {
 
     return `${rate.toFixed(0)} B/s`;
   }
+
+export const NETWORK_SCALE_MAX_MBPS = 50;
+
+export function networkPercent(rateBytesPerSecond: number): number {
+    const rateMbps = (rateBytesPerSecond * 8) / 1_000_000;
+
+    return Math.min(
+        (rateMbps / NETWORK_SCALE_MAX_MBPS) * 100,
+        100
+    );
+}
