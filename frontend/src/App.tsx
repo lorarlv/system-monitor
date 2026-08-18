@@ -6,6 +6,8 @@ import MetricCard from "./components/MetricCard";
 import type { Metrics } from "./types/metrics";
 import { formatNetworkRate } from "./utils/format";
 import HistoryChart from "./components/HistoryChart";
+import AlertsPanel from "./components/AlertsPanel";
+import type { Alerts } from "./types/alerts";
 
 function getStatus(
   value: number,
@@ -20,7 +22,7 @@ function getStatus(
     return "warning";
   }
 
-  return "healthy"
+  return "healthy";
 }
 
 function getTemperatureStatus(
@@ -44,7 +46,7 @@ function temperaturePercent(temp: number): number {
   return Math.max(
     0,
     Math.min(((temp - min) / (max - min)) * 100, 100)
-  )
+  );
 }
 
 function adaptiveNetworkPercent (
@@ -55,7 +57,7 @@ function adaptiveNetworkPercent (
     return 0;
   }
 
-  return Math.min((currentRate / maxRate) * 100, 100)
+  return Math.min((currentRate / maxRate) * 100, 100);
 }
 
 function App() {
@@ -64,6 +66,7 @@ function App() {
   const [maxUploadRate, setMaxUploadRate] = useState(1);
   const [history, setHistory] = useState<Metrics[]>([]);
   const [historyMinutes, setHistoryMinutes] = useState(5);
+  const [alerts, setAlerts] = useState<Alerts | null>(null);
 
   useEffect(() => {
     const fetchMetrics = () => {
@@ -76,7 +79,7 @@ function App() {
           return response.json();
         })
         .then ((data) => {
-          setMetrics(data)
+          setMetrics(data);
 
           setMaxDownloadRate((currentMax) =>
             Math.max(currentMax, data.download_rate)
@@ -88,6 +91,23 @@ function App() {
         })
         .catch((error) => {
           console.error("Failed to fetch metrics:", error);
+        });
+
+      fetch("http://127.0.0.1:8000/alerts")
+        .then ((response) => {
+          if (!response.ok) {
+            throw new Error(`HTTP error: ${response.status}`);
+          }
+
+          return response.json();
+        })
+
+        .then((data) => {
+          setAlerts(data);
+        })
+
+        .catch((error) => {
+          console.error("Failed to fetch alerts:", error);
         });
     };
 
@@ -187,6 +207,10 @@ useEffect(() => {
             />
           </div>
           
+          {alerts && (
+            <AlertsPanel alerts={alerts} />
+          )}
+
           <div className="history-section">
             <div className="history-header">
               <h2>CPU usage history</h2>

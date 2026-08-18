@@ -15,6 +15,7 @@ from .storage import (
     save_metrics,
     trim_history,
 )
+from .alerts import AlertState, AlertStatus, update_alert
 
 
 class MetricsResponse(BaseModel):
@@ -26,6 +27,11 @@ class MetricsResponse(BaseModel):
     download_rate: float
     upload_rate: float
 
+class AlertsResponse(BaseModel):
+    cpu: bool
+    temperature: bool
+    ram: bool
+    disk: bool
 
 def metrics_to_response(metrics: SystemMetrics) -> MetricsResponse:
     return MetricsResponse(
@@ -41,14 +47,53 @@ def metrics_to_response(metrics: SystemMetrics) -> MetricsResponse:
 
 latest_metrics: SystemMetrics | None = None
 
+latest_alerts = AlertStatus(
+    cpu=False,
+    temperature=False,
+    ram=False,
+    disk=False,
+)
+
+cpu_alert = AlertState()
+temperature_alert = AlertState()
+ram_alert = AlertState()
+disk_alert = AlertState()
 
 async def sample_metrics() -> None:
-    global latest_metrics
+    global latest_metrics, latest_alerts
 
     while True:
         metrics = await asyncio.to_thread(get_system_metrics)
 
         latest_metrics = metrics
+
+        temperature_is_alerting  = False
+
+        if metrics.cpu_temperature is not None:
+            temperature_is_alerting = update_alert(
+                metrics.cpu_temperature,
+                90.0,
+                temperature_alert,
+            )
+
+        latest_alerts = AlertStatus(
+            cpu=update_alert(
+                metrics.cpu,
+                80.0,
+                cpu_alert,
+            ),
+            temperature=temperature_is_alerting,
+            ram=update_alert(
+                metrics.memory,
+                90.0,
+                ram_alert,
+            ),
+            disk=update_alert(
+                metrics.disk,
+                90.0,
+                disk_alert,
+            ),
+        )
 
         await asyncio.to_thread(save_metrics, metrics)
 
@@ -137,3 +182,15 @@ def metrics_history(minutes: int = 5) -> list[MetricsResponse]:
 @app.get("/metrics/summary")
 def metrics_summary() -> dict[str, float]:
     return get_history_summary()
+
+@app.get(
+    "/alerts",
+    response_model=AlertsResponse,
+)
+def active_alerts() -> AlertsResponse:
+    return AlertsResponse(
+        cpu=latest_alerts.cpu,
+        temperature=latest_alerts.temperature,
+        ram=latest_alerts.ram,
+        disk=latest_alerts.disk,
+    )
