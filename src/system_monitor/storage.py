@@ -20,6 +20,10 @@ def init_storage() -> None:
             cpu_temperature REAL,
             memory REAL NOT NULL,
             disk REAL NOT NULL,
+            gpu_usage REAL,
+            gpu_temperature REAL,
+            gpu_memory_used REAL,
+            gpu_memory_total REAL,
             download_rate REAL NOT NULL,
             upload_rate REAL NOT NULL
             )
@@ -37,8 +41,20 @@ def save_metrics(metrics: SystemMetrics) -> None:
     with sqlite3.connect(DB_FILE) as connection:
         connection.execute(
             """
-            INSERT INTO metrics (timestamp, cpu, cpu_temperature, memory, disk, download_rate, upload_rate)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO metrics (
+                timestamp, 
+                cpu,
+                cpu_temperature,
+                memory,
+                disk,
+                gpu_usage,
+                gpu_temperature,
+                gpu_memory_used,
+                gpu_memory_total,
+                download_rate,
+                upload_rate
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
         (
             metrics.timestamp.isoformat(),
@@ -46,6 +62,10 @@ def save_metrics(metrics: SystemMetrics) -> None:
             metrics.cpu_temperature,
             metrics.memory,
             metrics.disk,
+            metrics.gpu_usage,
+            metrics.gpu_temperature,
+            metrics.gpu_memory_used,
+            metrics.gpu_memory_total,
             metrics.download_rate,
             metrics.upload_rate,
         ),
@@ -103,6 +123,10 @@ def get_metrics_since(minutes: int = 5) -> list[SystemMetrics]:
                 cpu_temperature,
                 memory,
                 disk,
+                gpu_usage,
+                gpu_temperature,
+                gpu_memory_used,
+                gpu_memory_total,
                 download_rate,
                 upload_rate
             FROM metrics
@@ -119,6 +143,10 @@ def get_metrics_since(minutes: int = 5) -> list[SystemMetrics]:
             cpu_temperature=cpu_temperature,
             memory=memory,
             disk=disk,
+            gpu_usage=gpu_usage,
+            gpu_temperature=gpu_temperature,
+            gpu_memory_used=gpu_memory_used,
+            gpu_memory_total=gpu_memory_total,
             download_rate=download_rate,
             upload_rate=upload_rate,
         )
@@ -128,6 +156,10 @@ def get_metrics_since(minutes: int = 5) -> list[SystemMetrics]:
             cpu_temperature,
             memory,
             disk,
+            gpu_usage,
+            gpu_temperature,
+            gpu_memory_used,
+            gpu_memory_total,
             download_rate,
             upload_rate,
         ) in rows
@@ -137,7 +169,7 @@ def get_recent_metrics(limit: int = 5) -> list[SystemMetrics]:
     with sqlite3.connect(DB_FILE) as connection:
         rows = connection.execute(
             """
-            SELECT timestamp, cpu, cpu_temperature, memory, disk, download_rate, upload_rate
+            SELECT timestamp, cpu, cpu_temperature, memory, disk, gpu_usage, gpu_temperature, gpu_memory_used, gpu_memory_total, download_rate, upload_rate
             FROM metrics
             ORDER BY timestamp DESC
             LIMIT ?
@@ -152,8 +184,12 @@ def get_recent_metrics(limit: int = 5) -> list[SystemMetrics]:
             cpu_temperature=cpu_temperature,
             memory=memory,
             disk=disk,
+            gpu_usage=gpu_usage,
+            gpu_temperature=gpu_temperature,
+            gpu_memory_used=gpu_memory_used,
+            gpu_memory_total=gpu_memory_total,
             download_rate=download_rate,
             upload_rate=upload_rate,
         )
-        for timestamp, cpu, cpu_temperature, memory, disk, download_rate, upload_rate in reversed(rows)
+        for timestamp, cpu, cpu_temperature, memory, disk, gpu_usage, gpu_temperature, gpu_memory_used, gpu_memory_total, download_rate, upload_rate in reversed(rows)
     ]

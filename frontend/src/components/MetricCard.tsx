@@ -1,3 +1,5 @@
+import Thermometer from "./Thermometer";
+
 type MetricStatus =
   | "healthy"
   | "warning"
@@ -10,6 +12,7 @@ type MetricCardProps = {
   title: string;
   value: string;
   percent?: number;
+  temperature?: number;
   status?: MetricStatus;
   visual?: "bar" | "thermometer" | "network";
 };
@@ -18,71 +21,79 @@ function MetricCard({
   title,
   value,
   percent,
+  temperature,
   status,
   visual,
 }: MetricCardProps) {
+  const temperatureStatus =
+    status === "cool" ||
+    status === "warm" ||
+    status === "hot"
+      ? status
+      : undefined;
+
   return (
     <div className="metric-card">
       <h2 className="metric-title">{title}</h2>
 
-      {visual !== "thermometer" && (
-        <p className="metric-value">{value}</p>
-      )}
+      {visual === "thermometer" ? (
+        <div className="temperature-layout">
+          <div className="temperature-info">
+            <p className="metric-value">{value}</p>
 
-      {visual === "bar" && percent !== undefined && status && (
-        <>
-          <div className="usage-bar">
-            <div
-              className={`usage-bar-fill ${status}`}
-              style={{ width: `${Math.min(percent, 100)}%` }}
-            />
+            {temperatureStatus && (
+              <p className={`metric-status ${temperatureStatus}`}>
+                {temperatureStatus === "cool" && "Cool"}
+                {temperatureStatus === "warm" && "Warm"}
+                {temperatureStatus === "hot" && "Hot"}
+              </p>
+            )}
           </div>
 
-          <p className={`metric-status ${status}`}>
-            {status === "healthy" && "Healthy"}
-            {status === "warning" && "Warning"}
-            {status === "critical" && "Critical"}
-          </p>
-        </>
-      )}
+          {temperature !== undefined && temperatureStatus && (
+            <Thermometer
+              temperature={temperature}
+              status={temperatureStatus}
+            />
+          )}
+        </div>
+      ) : (
+        <>
+          <p className="metric-value">{value}</p>
 
-      {visual === "thermometer" &&
-        percent !== undefined &&
-        status && (
-          <div className="temperature-layout">
-            <div className="temperature-info">
-              <p className="metric-value">{value}</p>
-
-              <p className={`metric-status ${status}`}>
-                {status === "cool" && "Cool"}
-                {status === "warm" && "Warm"}
-                {status === "hot" && "Hot"}
-              </p>
-            </div>
-
-            <div className="thermometer">
-              <div className="thermometer-tube">
+          {visual === "bar" && percent !== undefined && status && (
+            <>
+              <div className="usage-bar">
                 <div
-                  className={`thermometer-mercury ${status}`}
-                  style={{ height: `${Math.min(percent, 100)}%` }}
+                  className={`usage-bar-fill ${status}`}
+                  style={{
+                    width: `${Math.min(percent, 100)}%`,
+                  }}
                 />
               </div>
 
-              <div className={`thermometer-bulb ${status}`} />
-            </div>
-          </div>
-        )}
+              <p className={`metric-status ${status}`}>
+                {status === "healthy" && "Healthy"}
+                {status === "warning" && "Warning"}
+                {status === "critical" && "Critical"}
+              </p>
+            </>
+          )}
 
-        {visual === "network" && percent !== undefined && (
+          {visual === "network" && percent !== undefined && (
             <div className="network-visual">
-                <div className="network-bar">
-                    <div
-                        className="network-bar-fill"
-                        style={{ width: `${Math.min(percent, 100)}%` }}
-                    />
-                </div>
+              <div className="network-bar">
+                <div
+                  className="network-bar-fill"
+                  style={{
+                    width: `${Math.min(percent, 100)}%`,
+                  }}
+                />
+              </div>
             </div>
-        )}
+          )}
+        </>
+      )}
     </div>
   );
 }

@@ -75,20 +75,7 @@
   position: relative;
   width: 24px;
   height: 86px;
-  margin-right: 12px;
   flex-shrink: 0;
-}
-
-.thermometer::before {
-  content: "";
-  position: absolute;
-  left: 50%;
-  top: 0;
-  bottom: 14px;
-  width: 8px;
-  transform: translateX(-50%);
-  border-radius: 999px 999px 0 0;
-  background: #2a303b;
 }
 
 .thermometer-tube {
@@ -117,6 +104,10 @@
   height: 20px;
   transform: translateX(-50%);
   border-radius: 50%;
+}
+
+.thermometer-bulb.unavailable {
+  background: #2a303b;
 }
 
 .usage-bar-fill.healthy, .thermometer-mercury.cool, .thermometer-bulb.cool {
@@ -268,6 +259,60 @@
   font-weight: 600;
 }
 
+.gpu-card {
+  grid-column: span 2;
+}
+
+.gpu-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(180px, 1fr);
+  gap: 48px;
+  align-items: center;
+  margin-top: 18px;
+}
+
+.gpu-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+.gpu-section {
+  min-width: 0;
+}
+
+.gpu-metric {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+}
+
+.gpu-metric strong {
+  white-space: nowrap;
+}
+
+.gpu-temperature-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 32px;
+}
+
+.gpu-temperature-info {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.gpu-temperature-info strong {
+  white-space: nowrap;
+}
+
+.gpu-temperature-info .metric-status {
+  margin: 0;
+}
+
 .loading {
   text-align: center;
   color: #aab2c0;
@@ -292,6 +337,19 @@
   .history-controls select {
     width: 100%;
     min-width: 0;
+  }
+
+  .gpu-card {
+    grid-column: span 1;
+  }
+
+  .gpu-layout {
+    grid-template-columns: 1fr;
+    gap: 28px;
+  }
+
+  .gpu-temperature-section {
+    align-items: flex-start;
   }
 }
 

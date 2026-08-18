@@ -27,6 +27,11 @@ class MetricsResponse(BaseModel):
     download_rate: float
     upload_rate: float
 
+    gpu_usage: float | None
+    gpu_temperature: float | None
+    gpu_memory_used: float | None
+    gpu_memory_total: float | None
+
 class AlertsResponse(BaseModel):
     cpu: bool
     temperature: bool
@@ -42,6 +47,10 @@ def metrics_to_response(metrics: SystemMetrics) -> MetricsResponse:
         disk_percent=metrics.disk,
         download_rate=metrics.download_rate,
         upload_rate=metrics.upload_rate,
+        gpu_usage=metrics.gpu_usage,
+        gpu_temperature=metrics.gpu_temperature,
+        gpu_memory_used=metrics.gpu_memory_used,
+        gpu_memory_total=metrics.gpu_memory_total,
     )
 
 

@@ -18,6 +18,7 @@ from LibreHardwareMonitor.Hardware import Computer, HardwareType, SensorType
 computer = Computer()
 
 computer.IsCpuEnabled = True
+computer.IsGpuEnabled = True
 computer.Open()
 
 def print_cpu_sensors() -> None:
@@ -41,9 +42,6 @@ def print_cpu_sensors() -> None:
                     f"Max={sensor.Max}"
                 )
 
-if __name__ == "__main__":
-    print_cpu_sensors()
-
 def get_cpu_temperature() -> float | None:
     for hardware in computer.Hardware:
         hardware.Update()
@@ -60,3 +58,88 @@ def get_cpu_temperature() -> float | None:
                 return float(sensor.Value)
 
     return None
+
+def print_gpu_sensors() -> None:
+    for hardware in computer.Hardware:
+        hardware.Update()
+
+        if hardware.HardwareType in (
+            HardwareType.GpuNvidia,
+            HardwareType.GpuAmd,
+            HardwareType.GpuIntel,
+        ):
+            print(f"GPU: {hardware.Name}")
+
+            for sensor in hardware.Sensors:
+                print(
+                    f"{sensor.Name} | "
+                    f"{sensor.SensorType} | "
+                    f"Value={sensor.Value}"
+                )
+
+            for sub in hardware.SubHardware:
+                sub.Update()
+
+                for sensor in sub.Sensors:
+                    print(
+                        f"Sub: {sensor.Name} | "
+                        f"{sensor.SensorType} | "
+                        f"Value={sensor.Value}"
+                    )
+
+if __name__ == "__main__":
+    print_gpu_sensors()
+
+def get_gpu_metrics() -> tuple[
+    float | None,
+    float | None,
+    float | None,
+    float | None,
+]:
+    gpu_usage = None
+    gpu_temperature = None
+    gpu_memory_used = None
+    gpu_memory_total = None
+
+    for hardware in computer.Hardware:
+        hardware.Update()
+
+        if hardware.HardwareType not in (
+            HardwareType.GpuNvidia,
+            HardwareType.GpuAmd,
+            HardwareType.GpuIntel,
+        ):
+            continue
+
+        for sensor in hardware.Sensors:
+            if (
+                sensor.SensorType == SensorType.Load
+                and sensor.Name == "D3D 3D"
+                and sensor.Value is not None
+            ):
+                gpu_usage = float(sensor.Value)
+
+            elif (
+                sensor.SensorType == SensorType.Temperature
+                and sensor.Value is not None
+            ):
+                gpu_temperature = float(sensor.Value)
+
+            elif (
+                sensor.Name == "D3D Shared Memory Used"
+                and sensor.Value is not None
+            ):
+                gpu_memory_used = float(sensor.Value)
+
+            elif (
+                sensor.Name == "D3D Shared Memory Total"
+                and sensor.Value is not None
+            ):
+                gpu_memory_total = float(sensor.Value)
+
+        return (
+            gpu_usage,
+            gpu_temperature,
+            gpu_memory_used,
+            gpu_memory_total,
+        )

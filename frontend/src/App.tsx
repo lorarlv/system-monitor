@@ -2,12 +2,15 @@ import { useEffect, useState } from "react";
 
 import "./App.css";
 
-import MetricCard from "./components/MetricCard";
-import type { Metrics } from "./types/metrics";
-import { formatNetworkRate } from "./utils/format";
-import HistoryChart from "./components/HistoryChart";
 import AlertsPanel from "./components/AlertsPanel";
+import GpuCard from "./components/GpuCard";
+import HistoryChart from "./components/HistoryChart";
+import MetricCard from "./components/MetricCard";
+
 import type { Alerts } from "./types/alerts";
+import type { Metrics } from "./types/metrics";
+
+import { formatNetworkRate } from "./utils/format";
 
 function getStatus(
   value: number,
@@ -37,16 +40,6 @@ function getTemperatureStatus(
   }
 
   return "cool";
-}
-
-function temperaturePercent(temp: number): number {
-  const min = 30;
-  const max = 100;
-
-  return Math.max(
-    0,
-    Math.min(((temp - min) / (max - min)) * 100, 100)
-  );
 }
 
 function adaptiveNetworkPercent (
@@ -123,32 +116,32 @@ function App() {
     return () => clearInterval(interval);
   }, []);
 
-useEffect(() => {
-  const fetchHistory = () => {
-    fetch(
-      `http://127.0.0.1:8000/metrics/history?minutes=${historyMinutes}`
-    )
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error(`HTTP error: ${response.status}`);
-        }
+  useEffect(() => {
+    const fetchHistory = () => {
+      fetch(
+        `http://127.0.0.1:8000/metrics/history?minutes=${historyMinutes}`
+      )
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error(`HTTP error: ${response.status}`);
+          }
 
-        return response.json();
-      })
-      .then((data) => {
-        setHistory(data);
-      })
-      .catch((error) => {
-        console.error("Failed to fetch history:", error);
-      });
-  };
+          return response.json();
+        })
+        .then((data) => {
+          setHistory(data);
+        })
+        .catch((error) => {
+          console.error("Failed to fetch history:", error);
+        });
+    };
 
-  fetchHistory();
+    fetchHistory();
 
-  const interval = setInterval(fetchHistory, 5000);
+    const interval = setInterval(fetchHistory, 5000);
 
-  return () => clearInterval(interval);
-}, [historyMinutes]);
+    return () => clearInterval(interval);
+  }, [historyMinutes]);
 
   const temperatureStatus =
     metrics?.cpu_temperature != null
@@ -176,11 +169,7 @@ useEffect(() => {
                   ? "Unavailable"
                   : `${metrics.cpu_temperature.toFixed(1)}°C`
               }
-              percent={
-                metrics.cpu_temperature === null
-                  ? undefined
-                  : temperaturePercent(metrics.cpu_temperature)
-              }
+              temperature={metrics.cpu_temperature ?? undefined}
               status={temperatureStatus}
               visual="thermometer"
             />
@@ -209,6 +198,12 @@ useEffect(() => {
               value={formatNetworkRate(metrics.upload_rate)}
               percent={adaptiveNetworkPercent(metrics.upload_rate, maxUploadRate)}
               visual="network"
+            />
+            <GpuCard
+              usage={metrics.gpu_usage}
+              memoryUsed={metrics.gpu_memory_used}
+              memoryTotal={metrics.gpu_memory_total}
+              temperature={metrics.gpu_temperature}
             />
           </div>
           

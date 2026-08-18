@@ -4,7 +4,7 @@ from datetime import datetime
 
 import psutil
 
-from .hardware import get_cpu_temperature
+from .hardware import get_cpu_temperature, get_gpu_metrics
 
 _last_net = psutil.net_io_counters()
 _last_net_time = time.time()
@@ -47,11 +47,16 @@ class SystemMetrics:
     cpu_temperature: float | None
     memory: float
     disk: float
+    gpu_usage: float | None
+    gpu_temperature: float | None
+    gpu_memory_used: float | None
+    gpu_memory_total: float | None
     download_rate: float
     upload_rate: float
 
 def get_system_metrics() -> SystemMetrics:
     download_rate, upload_rate = get_network_usage()
+    gpu_usage, gpu_temperature, gpu_memory_used, gpu_memory_total = get_gpu_metrics()
 
     return SystemMetrics(
         timestamp=datetime.now(),
@@ -59,6 +64,10 @@ def get_system_metrics() -> SystemMetrics:
         cpu_temperature=get_cpu_temperature(),
         memory=get_memory_usage(),
         disk=get_disk_usage(),
+        gpu_usage=gpu_usage,
+        gpu_temperature=gpu_temperature,
+        gpu_memory_used=gpu_memory_used,
+        gpu_memory_total=gpu_memory_total,
         download_rate=download_rate,
         upload_rate=upload_rate,
     )

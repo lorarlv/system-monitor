@@ -6,4 +6,9 @@ export type Metrics = {
     disk_percent: number;
     download_rate: number;
     upload_rate: number;
+
+    gpu_usage: number | null;
+    gpu_temperature: number | null;
+    gpu_memory_used: number | null;
+    gpu_memory_total: number | null;
 }
