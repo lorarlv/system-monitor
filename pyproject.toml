@@ -17,6 +17,7 @@ dependencies = [
 
 [project.scripts]
 system-monitor = "system_monitor.main:main"
+system-monitor-web = "system_monitor.server:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]

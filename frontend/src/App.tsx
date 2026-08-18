@@ -73,7 +73,7 @@ function App() {
 
   useEffect(() => {
     const fetchMetrics = () => {
-      fetch("http://127.0.0.1:8000/metrics/current")
+      fetch("/metrics/current")
         .then((response) => {
           if (!response.ok) {
             throw new Error(`HTTP error: ${response.status}`);
@@ -96,7 +96,7 @@ function App() {
           console.error("Failed to fetch metrics:", error);
         });
 
-      fetch("http://127.0.0.1:8000/alerts")
+      fetch("/alerts")
         .then ((response) => {
           if (!response.ok) {
             throw new Error(`HTTP error: ${response.status}`);
@@ -124,7 +124,7 @@ function App() {
   useEffect(() => {
     const fetchHistory = () => {
       fetch(
-        `http://127.0.0.1:8000/metrics/history?minutes=${historyMinutes}`
+        `/metrics/history?minutes=${historyMinutes}`
       )
         .then((response) => {
           if (!response.ok) {

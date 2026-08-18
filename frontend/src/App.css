@@ -12,7 +12,7 @@
 
 .metrics-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
   gap: 20px;
 }
 
@@ -338,14 +338,16 @@
     width: 100%;
     min-width: 0;
   }
+}
 
+@media (max-width: 600px) {
   .gpu-card {
-    grid-column: span 1;
+  grid-column: span 1;
   }
 
   .gpu-layout {
     grid-template-columns: 1fr;
-    gap: 28px;
+    gap: 24px;
   }
 
   .gpu-temperature-section {

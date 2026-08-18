@@ -1,12 +1,11 @@
-from pathlib import Path
+from .paths import resource_path
 import sys
 
 import clr
 
-LIB_DIR = (
-    Path(__file__).resolve().parents[2]
-    / "vendor"
-    / "LibreHardwareMonitor"
+LIB_DIR = resource_path(
+    "vendor",
+    "LibreHardwareMonitor",
 )
 
 sys.path.append(str(LIB_DIR))
@@ -137,9 +136,9 @@ def get_gpu_metrics() -> tuple[
             ):
                 gpu_memory_total = float(sensor.Value)
 
-        return (
-            gpu_usage,
-            gpu_temperature,
-            gpu_memory_used,
-            gpu_memory_total,
-        )
+    return (
+        gpu_usage,
+        gpu_temperature,
+        gpu_memory_used,
+        gpu_memory_total,
+    )

@@ -4,9 +4,13 @@ from datetime import datetime
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
+from .alerts import AlertState, AlertStatus, update_alert
 from .monitor import SystemMetrics, get_system_metrics
+from .paths import resource_path
 from .storage import (
     get_history_summary,
     get_metrics_since,
@@ -15,8 +19,11 @@ from .storage import (
     save_metrics,
     trim_history,
 )
-from .alerts import AlertState, AlertStatus, update_alert
 
+FRONTEND_DIST = resource_path(
+    "frontend",
+    "dist",
+)
 
 class MetricsResponse(BaseModel):
     timestamp: datetime
@@ -203,3 +210,23 @@ def active_alerts() -> AlertsResponse:
         ram=latest_alerts.ram,
         disk=latest_alerts.disk,
     )
+
+if FRONTEND_DIST.exists():
+    app.mount(
+        "/assets",
+        StaticFiles(
+            directory=FRONTEND_DIST / "assets"
+        ),
+        name="assets",
+    )
+
+@app.get("/{full_path:path}")
+def serve_frontend(full_path: str):
+    index_file = FRONTEND_DIST / "index.html"
+
+    if not index_file.exists():
+        return {
+            "error": "Frontend build not found"
+        }
+
+    return FileResponse(index_file)
