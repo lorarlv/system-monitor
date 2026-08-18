@@ -61,7 +61,12 @@ function App() {
   const [history, setHistory] = useState<Metrics[]>([]);
   const [historyMinutes, setHistoryMinutes] = useState(5);
   const [historyMetric, setHistoryMetric] = useState<
-    "cpu" | "memory" | "disk" | "temperature"
+    "cpu" 
+    | "memory" 
+    | "disk" 
+    | "temperature"
+    | "gpu"
+    | "vram"
   >("cpu");
   
   const [alerts, setAlerts] = useState<Alerts | null>(null);
@@ -226,6 +231,8 @@ function App() {
                           | "temperature"
                           | "memory"
                           | "disk"
+                          | "gpu"
+                          | "vram"
                       )
                     }
                   >
@@ -233,6 +240,8 @@ function App() {
                     <option value="temperature">CPU temperature</option>
                     <option value="memory">RAM usage</option>
                     <option value="disk">Disk usage</option>
+                    <option value="gpu">GPU usage</option>
+                    <option value="vram">VRAM usage</option>
                   </select>
                 </label>
 

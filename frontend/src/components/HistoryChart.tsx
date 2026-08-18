@@ -16,7 +16,9 @@ type HistoryMetric =
   | "cpu"
   | "memory"
   | "disk"
-  | "temperature";
+  | "temperature"
+  | "gpu"
+  | "vram";
 
 type HistoryChartProps = {
   data: Metrics[];
@@ -65,25 +67,68 @@ function HistoryChart({data, metric }: HistoryChartProps) {
             color: getTemperatureColor(latestTemperature),
             getValue: (item: Metrics) => item.cpu_temperature,
             domain: [0, 100],
-            },
+        },
+        gpu: {
+            label: "GPU usage",
+            unit: "%",
+            color: "#4ade80",
+            domain: [0,100],
+        },
+        vram: {
+            label: "VRAM usage",
+            unit: "%",
+            color: "#4ade80",
+            domain: [0,100],
+        },
 };
 
     const config = metricConfig[metric];
 
     const chartData = useMemo(() => {
         return data
-            .map((item) => ({
-                time: new Date(item.timestamp).toLocaleTimeString(),
-                value:
-                    metric === "cpu"
-                        ? item.cpu_percent
-                        : metric === "memory"
-                            ? item.memory_percent
-                            : metric === "disk"
-                                ? item.disk_percent
-                                : item.cpu_temperature,
-            }))
-            .filter((item) => item.value !== null);
+            .map((item) => {
+                let value: number | null;
+
+                switch (metric) {
+                    case "cpu":
+                        value = item.cpu_percent;
+                        break;
+
+                    case "memory":
+                        value = item.memory_percent;
+                        break;
+
+                    case "disk":
+                        value = item.disk_percent;
+                        break;
+
+                    case "temperature":
+                        value = item.cpu_temperature;
+                        break;
+
+                    case "gpu":
+                        value = item.gpu_usage;
+                        break;
+
+                    case "vram":
+                        value =
+                            item.gpu_memory_used != null &&
+                            item.gpu_memory_total != null &&
+                            item.gpu_memory_total > 0
+                            ? (item.gpu_memory_used / item.gpu_memory_total) * 100
+                            : null;
+                        break;
+                }
+
+                return {
+                    time: new Date(item.timestamp).toLocaleTimeString(),
+                    value,
+                };
+            })
+            .filter(
+                (item): item is { time: string; value: number } =>
+                    item.value !== null
+            );
     }, [data, metric]);
 
     return (
