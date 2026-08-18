@@ -2,7 +2,7 @@ import asyncio
 from contextlib import asynccontextmanager
 from datetime import datetime
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
@@ -60,7 +60,6 @@ def metrics_to_response(metrics: SystemMetrics) -> MetricsResponse:
         gpu_memory_total=metrics.gpu_memory_total,
     )
 
-
 latest_metrics: SystemMetrics | None = None
 
 latest_alerts = AlertStatus(
@@ -83,7 +82,7 @@ async def sample_metrics() -> None:
 
         latest_metrics = metrics
 
-        temperature_is_alerting  = False
+        temperature_is_alerting = False
 
         if metrics.cpu_temperature is not None:
             temperature_is_alerting = update_alert(
@@ -219,6 +218,19 @@ if FRONTEND_DIST.exists():
         ),
         name="assets",
     )
+
+@app.post("/shutdown")
+def shutdown(request: Request) -> dict[str, str]:
+    shutdown_callback = getattr(
+        request.app.state,
+        "shutdown_callback",
+        None,
+    )
+
+    if shutdown_callback is not None:
+        shutdown_callback()
+
+    return {"status": "shutting down"}
 
 @app.get("/{full_path:path}")
 def serve_frontend(full_path: str):

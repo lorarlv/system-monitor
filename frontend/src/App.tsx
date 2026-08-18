@@ -71,7 +71,23 @@ function App() {
   
   const [alerts, setAlerts] = useState<Alerts | null>(null);
 
+  const [isShuttingDown, setIsShuttingDown] = useState(false);
+
+  function shutdownMonitor() {
+    setIsShuttingDown(true);
+
+    fetch("/shutdown", {
+      method: "POST",
+    }).catch(() => {
+      // Losing connection is expected because server is shutting down.
+    });
+  }
+
   useEffect(() => {
+    if (isShuttingDown) {
+      return;
+    }
+
     const fetchMetrics = () => {
       fetch("/metrics/current")
         .then((response) => {
@@ -122,6 +138,10 @@ function App() {
   }, []);
 
   useEffect(() => {
+    if (isShuttingDown) {
+      return;
+    }
+    
     const fetchHistory = () => {
       fetch(
         `/metrics/history?minutes=${historyMinutes}`
@@ -153,6 +173,17 @@ function App() {
       ? getTemperatureStatus(metrics.cpu_temperature)
       : undefined;
 
+  if (isShuttingDown) {
+    return (
+      <main className="app">
+        <div className="shutdown-message">
+          <h1>System Monitor stopped</h1>
+          <p>You can close this tab.</p>
+        </div>
+      </main>
+    );
+  }
+  
   return (
     <main className="app">
       <h1 className="app-title">System Monitor</h1>
@@ -274,6 +305,13 @@ function App() {
       ) : (
         <p className="loading">Loading...</p>
       )}
+
+      <button
+        className="shutdown-button"
+        onClick={shutdownMonitor}
+      >
+        Stop System Monitor
+      </button>
     </main>
   );
 }

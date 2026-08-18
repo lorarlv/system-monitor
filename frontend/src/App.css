@@ -340,6 +340,25 @@
   }
 }
 
+.shutdown-button {
+  display: block;
+  margin: 32px auto 0;
+  padding: 10px 18px;
+
+  border: 1px solid #ef4444;
+  border-radius: 10px;
+
+  background: transparent;
+  color: #ef4444;
+
+  font: inherit;
+  cursor: pointer;
+}
+
+.shutdown-button:hover {
+  background: rgba(239, 68, 68, 0.08);
+}
+
 @media (max-width: 600px) {
   .gpu-card {
   grid-column: span 1;
