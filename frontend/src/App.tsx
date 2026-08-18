@@ -64,8 +64,13 @@ function App() {
   const [metrics, setMetrics] = useState<Metrics | null>(null);
   const [maxDownloadRate, setMaxDownloadRate] = useState(1);
   const [maxUploadRate, setMaxUploadRate] = useState(1);
+
   const [history, setHistory] = useState<Metrics[]>([]);
   const [historyMinutes, setHistoryMinutes] = useState(5);
+  const [historyMetric, setHistoryMetric] = useState<
+    "cpu" | "memory" | "disk" | "temperature"
+  >("cpu");
+  
   const [alerts, setAlerts] = useState<Alerts | null>(null);
 
   useEffect(() => {
@@ -213,26 +218,50 @@ useEffect(() => {
 
           <div className="history-section">
             <div className="history-header">
-              <h2>CPU usage history</h2>
+              <h2>System history</h2>
+              <div className="history-controls">
+                <label>
+                  Metric{" "}
+                  <select
+                    value={historyMetric}
+                    onChange={(event) =>
+                      setHistoryMetric(
+                        event.target.value as
+                          | "cpu"
+                          | "temperature"
+                          | "memory"
+                          | "disk"
+                      )
+                    }
+                  >
+                    <option value="cpu">CPU usage</option>
+                    <option value="temperature">CPU temperature</option>
+                    <option value="memory">RAM usage</option>
+                    <option value="disk">Disk usage</option>
+                  </select>
+                </label>
 
-              <label>
-                Time Range{" "}
-                <select
-                  value={historyMinutes}
-                  onChange={(event) =>
-                    setHistoryMinutes(Number(event.target.value))
-                  }
-                >
-                  <option value={1}>1 minute</option>
-                  <option value={5}>5 minutes</option>
-                  <option value={15}>15 minutes</option>
-                  <option value={60}>1 hour</option>
-                </select>
-              </label>
+                <label>
+                  Time Range{" "}
+                  <select
+                    value={historyMinutes}
+                    onChange={(event) =>
+                      setHistoryMinutes(Number(event.target.value))
+                    }
+                  >
+                    <option value={1}>1 minute</option>
+                    <option value={5}>5 minutes</option>
+                    <option value={15}>15 minutes</option>
+                    <option value={60}>1 hour</option>
+                  </select>
+                </label>
+              </div>
             </div>
 
             {history.length > 0 ? (
-              <HistoryChart data={history} />
+              <HistoryChart 
+                data={history}
+                metric={historyMetric} />
             ) : (
               <p className="history-empty">No data in this time range.</p>
             )}
