@@ -30,3 +30,6 @@ data/
 
 # Experimentation
 playground.py
+
+# ZIPs
+SystemMonitor-*-Windows.zip

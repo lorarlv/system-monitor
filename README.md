@@ -8,6 +8,12 @@ It collects real-time system information, stores historical data in SQLite, expo
 
 ---
 
+## Download
+
+Windows builds are available from the GitHub Releases page.
+
+Download the ZIP, extract it, and run `SystemMonitor.exe`.
+
 ## Current features
 
 ### Monitoring
