@@ -14,6 +14,11 @@ Windows builds are available from the GitHub Releases page.
 
 Download the ZIP, extract it, and run `SystemMonitor.exe`.
 
+### Hardware sensor support
+Temperature readings depend on hardware support and system permissions.
+
+Some sensors may require running the application as administrator.
+
 ## Current features
 
 ### Monitoring
