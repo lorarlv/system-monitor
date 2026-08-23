@@ -1,5 +1,6 @@
 # Python virtual environment
 .venv/
+.venv-build/
 venv/
 
 # Python cache
@@ -33,3 +34,13 @@ playground.py
 
 # ZIPs
 SystemMonitor-*-Windows.zip
+
+# Release staging folders
+SystemMonitor-*-Windows/
+
+# .NET build artifacts
+hardware-helper/**/bin/
+hardware-helper/**/obj/
+
+# Published hardware helper runtime
+vendor/HardwareHelper/

@@ -4,6 +4,7 @@ project_root = Path(SPECPATH)
 
 frontend_dist = project_root / "frontend" / "dist"
 hardware_dir = project_root / "vendor" / "LibreHardwareMonitor"
+helper_dir = project_root / "vendor" / "HardwareHelper"
 
 datas = [
     (
@@ -14,6 +15,10 @@ datas = [
         str(hardware_dir),
         "vendor/LibreHardwareMonitor",
     ),
+    (
+        str(helper_dir),
+        "vendor/HardwareHelper",
+    ),
 ]
 
 a = Analysis(
@@ -21,9 +26,7 @@ a = Analysis(
     pathex=["src"],
     binaries=[],
     datas=datas,
-    hiddenimports=[
-        "clr",
-    ],
+    hiddenimports=[],
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],

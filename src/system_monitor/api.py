@@ -9,7 +9,7 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
 from .alerts import AlertState, AlertStatus, update_alert
-from .monitor import SystemMetrics, get_system_metrics
+from .monitor import SystemMetrics, get_system_metrics, update_hardware_metrics
 from .paths import resource_path
 from .storage import (
     get_history_summary,
@@ -77,8 +77,12 @@ disk_alert = AlertState()
 async def sample_metrics() -> None:
     global latest_metrics, latest_alerts
 
+    last_saved = 0.0
+
     while True:
-        metrics = await asyncio.to_thread(get_system_metrics)
+        metrics = await asyncio.to_thread(
+            get_system_metrics
+        )
 
         latest_metrics = metrics
 
@@ -110,10 +114,25 @@ async def sample_metrics() -> None:
             ),
         )
 
-        await asyncio.to_thread(save_metrics, metrics)
+        now = asyncio.get_running_loop().time()
+
+        if now - last_saved >= 1.0:
+            await asyncio.to_thread(
+                save_metrics,
+                metrics,
+            )
+
+            last_saved = now
+
+        await asyncio.sleep(0.5)
+
+async def sample_hardware() -> None:
+    while True:
+        await asyncio.to_thread(
+            update_hardware_metrics
+        )
 
         await asyncio.sleep(1)
-
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -122,22 +141,28 @@ async def lifespan(app: FastAPI):
 
     sampler_task = asyncio.create_task(sample_metrics())
 
+    hardware_task = asyncio.create_task(sample_hardware())
+
     try:
         yield
     finally:
         sampler_task.cancel()
+        hardware_task.cancel()
 
         try:
             await sampler_task
         except asyncio.CancelledError:
             pass
 
+        try:
+            await hardware_task
+        except asyncio.CancelledError:
+            pass
 
 app = FastAPI(
     title="System Monitor API",
     lifespan=lifespan,
 )
-
 
 app.add_middleware(
     CORSMiddleware,
@@ -150,11 +175,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-
 @app.get("/health")
 def health() -> dict[str, str]:
     return {"status": "ok"}
-
 
 @app.get(
     "/metrics/current",
@@ -166,7 +189,6 @@ def current_metrics() -> MetricsResponse:
         return metrics_to_response(metrics)
 
     return metrics_to_response(latest_metrics)
-
 
 @app.get(
     "/metrics/recent",
@@ -180,7 +202,6 @@ def recent_metrics(limit: int = 60) -> list[MetricsResponse]:
         for metric in metrics
     ]
 
-
 @app.get(
     "/metrics/history",
     response_model=list[MetricsResponse],
@@ -192,7 +213,6 @@ def metrics_history(minutes: int = 5) -> list[MetricsResponse]:
         metrics_to_response(metric)
         for metric in metrics
     ]
-
 
 @app.get("/metrics/summary")
 def metrics_summary() -> dict[str, float]:
